@@ -37,7 +37,7 @@ async function run() {
         })
 
         app.get('/available', async (req, res) => {
-            const date = req.query.date || 'Jan 20, 2024';
+            const date = req.query.date;
 
             // step1: get all services
             const services = await servicesCollection.find().toArray();
@@ -59,6 +59,14 @@ async function run() {
 
             res.send(services);
         })
+
+        app.get('/booking', async (req, res) => {
+            const patient = req.query.patient;
+            const query = { patient: patient };
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
+        })
+
 
         app.post('/booking', async (req, res) => {
             const booking = req.body;
