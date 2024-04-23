@@ -4,6 +4,35 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const app = express();
+
+const formData = require('form-data');
+const { createTransport } = require('nodemailer');
+
+const transporter = createTransport({
+    host: "smtp-relay.sendinblue.com",
+    port: 587,
+    auth: {
+        user: process.env.EMAIL_USER,
+        // user: "mahbub.sakib418@gmail.com",
+        pass: process.env.EMAIL_API_KEY
+    }
+});
+
+// const mailOptions = {
+//     from: process.env.EMAIL_USER,
+//     to: process.env.EMAIL_USER,
+//     subject: 'Appointment Confirmation',
+//     text: 'Hello, Your Appointment has been confirmed. You can check your appointment status on the portal.'
+// }
+
+// transporter.sendMail(mailOptions, function (error, info) {
+//     if (error) {
+//         console.log(error);
+//     } else {
+//         console.log('Email sent: ' + info.response);
+//     }
+// });
+
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -32,6 +61,36 @@ function verifyJWT(req, res, next) {
         }
         req.decoded = decoded;
         next();
+    })
+}
+
+function sendAppointmentEmail(booking) {
+    const { patient, patientName, treatment, date, slot } = booking;
+
+    var email = {
+        from: process.env.EMAIL_USER,
+        // from: "mahbub.sakib418@gmail.com",
+        to: patient,
+        subject: `Your Appointment for ${treatment} is on ${date} at ${slot} is confirmed`,
+        text: `Your Appointment for ${treatment} is on ${date} at ${slot} is confirmed`,
+        html: `
+        <div>
+            <p>hello ${patientName}</p>
+            <h3>Your Appointment for ${treatment} is confirmed</h3>
+            <p>Looking forward to seeing you on ${date} at ${slot}.</p>
+
+            <h3>Our address:</h3>
+            <p>Rampura, Dhaka</p>
+            <p>Bangladesh</p>
+        </div>
+        `
+    }
+    transporter.sendMail(email, function (error, info) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
     })
 }
 
@@ -151,6 +210,8 @@ async function run() {
                 return res.send({ success: false, booking: exists });
             }
             const result = await bookingCollection.insertOne(booking);
+            console.log('sending email');
+            sendAppointmentEmail(booking);
             return res.send({ success: true, result });
         })
 
