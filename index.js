@@ -69,7 +69,6 @@ function sendAppointmentEmail(booking) {
 
     var email = {
         from: process.env.EMAIL_USER,
-        // from: "mahbub.sakib418@gmail.com",
         to: patient,
         subject: `Your Appointment for ${treatment} is on ${date} at ${slot} is confirmed`,
         text: `Your Appointment for ${treatment} is on ${date} at ${slot} is confirmed`,
