@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 
 const formData = require('form-data');
@@ -200,6 +200,12 @@ async function run() {
             }
         })
 
+        app.get('/booking/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const booking = await bookingCollection.findOne(query);
+            res.send(booking);
+        })
 
         app.post('/booking', async (req, res) => {
             const booking = req.body;
