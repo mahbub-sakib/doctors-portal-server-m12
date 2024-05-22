@@ -8,6 +8,8 @@ const app = express();
 const formData = require('form-data');
 const { createTransport } = require('nodemailer');
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const transporter = createTransport({
     host: "smtp-relay.sendinblue.com",
     port: 587,
@@ -116,6 +118,18 @@ async function run() {
                 return res.status(403).send({ message: 'forbidden access' });
             }
         }
+
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const service = req.body;
+            const price = service.price;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({ clientSecret: paymentIntent.client_secret })
+        });
 
         app.get('/service', async (req, res) => {
             const query = {};
